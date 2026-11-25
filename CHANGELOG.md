@@ -1,3 +1,8 @@
+## 0.1.1
+- Skolistan hämtas från www.minridskola.se (ww2 redirectar till Default.aspx).
+- Tydligare felmeddelande vid nekad inloggning, plus debug-logg av slut-URL.
+- Ruff-stil: re.S/re.I ersatta med re.DOTALL/re.IGNORECASE.
+
 # Changelog
 
 ## 0.1.0
