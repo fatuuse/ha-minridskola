@@ -13,6 +13,7 @@ import aiohttp
 
 from .const import (
     BASE_URL,
+    SCHOOLS_BASE_URL,
     DEBUG_BUFFER_SIZE,
     LOGGER,
     LOGIN_FIELD_PASS,
@@ -135,7 +136,8 @@ class MinRidskolaClient:
     # --- public API -----------------------------------------------------
 
     async def async_get_schools(self) -> list[School]:
-        return parse_schools(await self._request("GET", PATH_SCHOOLS))
+        url = SCHOOLS_BASE_URL + PATH_SCHOOLS
+        return parse_schools(await self._request("GET", url))
 
     async def async_login(self) -> None:
         if not (self._username and self._password):
@@ -163,6 +165,16 @@ class MinRidskolaClient:
             LOGGER.debug("Following auto-submit form -> %s", action)
             body = await self._request("POST", urljoin(self._last_url, action), data=fields)
         if not parse_login_result(body):
+            title = re.search(r"<title>(.*?)</title>", body, re.DOTALL | re.IGNORECASE)
+            LOGGER.debug(
+                "Login not accepted: final=%s title=%r bytes=%d",
+                self._last_url, title.group(1).strip() if title else None, len(body),
+            )
+            if "_Nekad" in self._last_url:
+                raise AuthError(
+                    "Inloggningen nekades. Kontrollera användarnamn/personnummer och lösenord, "
+                    "och att kontot är aktiverat hos ridskolan."
+                )
             raise AuthError("Sign-in rejected or unexpected page")
         self._welcome_name = parse_welcome_name(body)
         self._signed_in = True

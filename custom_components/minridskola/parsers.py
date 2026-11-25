@@ -42,6 +42,8 @@ def parse_schools(html: str) -> list[School]:
         seen.add(lic_nr)
         schools.append(School(school_id=lic_nr, name=f"{name}, {city}"))
     if not schools:
+        if "Default.aspx" in html or "Init_LoggaIn" in html or len(html) < 3000:
+            raise ParseError("parse_schools: got redirect/login page instead of school list")
         raise ParseError("parse_schools: no schools found – page structure may have changed")
     return schools
 
@@ -52,7 +54,7 @@ def parse_login_result(html: str) -> bool:
 
 
 _WELCOME_RE = re.compile(
-    r'id="ContentPlaceHolder1_labWelcomeBig"[^>]*>.*?<b>(.*?)</b>', re.S | re.I
+    r'id="ContentPlaceHolder1_labWelcomeBig"[^>]*>.*?<b>(.*?)</b>', re.DOTALL | re.IGNORECASE
 )
 
 
@@ -64,7 +66,7 @@ def parse_welcome_name(html: str) -> str:
     return htmllib.unescape(re.sub(r"<[^>]+>", "", m.group(1))).strip().rstrip("!").strip()
 
 
-_FORM_ACTION_RE = re.compile(r'<form\b[^>]*\baction="([^"]*)"', re.I)
+_FORM_ACTION_RE = re.compile(r'<form\b[^>]*\baction="([^"]*)"', re.IGNORECASE)
 
 
 def parse_autosubmit_form(html: str) -> tuple[str, dict[str, str]] | None:
@@ -76,13 +78,13 @@ def parse_autosubmit_form(html: str) -> tuple[str, dict[str, str]] | None:
 
 
 _WEEKDAYS = {"mån": 0, "tis": 1, "ons": 2, "tor": 3, "fre": 4, "lör": 5, "sön": 6}
-_CELL_RE = re.compile(r"<td[^>]*>(.*?)</td>", re.S | re.I)
+_CELL_RE = re.compile(r"<td[^>]*>(.*?)</td>", re.DOTALL | re.IGNORECASE)
 _RANGE_RE = re.compile(r"(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})")
 _ID_SPLIT = "GoToLektion('"
 
 
 def _text(cell: str) -> str:
-    cell = re.sub(r"<br\s*/?>", "\n", cell, flags=re.I)
+    cell = re.sub(r"<br\s*/?>", "\n", cell, flags=re.IGNORECASE)
     cell = htmllib.unescape(re.sub(r"<[^>]+>", "", cell))
     return cell.replace("\u2011", "").replace("\xa0", " ").strip()
 
@@ -100,7 +102,7 @@ def _segments(panel: str) -> list[tuple[str, list[str]]]:
     result = []
     for seg in panel.split(_ID_SPLIT)[1:]:
         lesson_id = seg.split("'", 1)[0]  # raw, keeps padding spaces
-        m = re.search(r'<tr class="w3-white[^>]*>(.*?)</tr>', seg, re.S)
+        m = re.search(r'<tr class="w3-white[^>]*>(.*?)</tr>', seg, re.DOTALL)
         if m:
             result.append((lesson_id, [_text(c) for c in _CELL_RE.findall(m.group(1))]))
     return result
@@ -144,7 +146,7 @@ def parse_lessons(html: str) -> list[WeeklyLesson]:
     return lessons
 
 
-_INPUT_RE = re.compile(r"<input\b[^>]*>", re.I)
+_INPUT_RE = re.compile(r"<input\b[^>]*>", re.IGNORECASE)
 _ATTR_RE = re.compile(r'(\w+)\s*=\s*"([^"]*)"')
 
 
@@ -166,10 +168,10 @@ def parse_hidden_fields(html: str) -> dict[str, str]:
 
 
 _PERIOD_RE = re.compile(
-    r"Lektionsperiod\s*</td>\s*<td[^>]*>\s*(\d{4})-(\d{2})-(\d{2})\s*-\s*(\d{4})-(\d{2})-(\d{2})", re.S
+    r"Lektionsperiod\s*</td>\s*<td[^>]*>\s*(\d{4})-(\d{2})-(\d{2})\s*-\s*(\d{4})-(\d{2})-(\d{2})", re.DOTALL
 )
 _MESSAGE_RE = re.compile(
-    r"Meddelande från ridläraren.*?<span class=\"w3-text-indigo[^\"]*\"[^>]*>(.*?)</span>", re.S
+    r"Meddelande från ridläraren.*?<span class=\"w3-text-indigo[^\"]*\"[^>]*>(.*?)</span>", re.DOTALL
 )
 
 
@@ -191,7 +193,7 @@ def parse_lesson_detail(html: str) -> dict:
 
 
 _HISTORY_RE = re.compile(
-    r'Vecka\s*<span[^>]*>(\d{4})(?:&#x2011;|\u2011|-)(\d{1,2})</span></td>\s*<td[^>]*>(.*?)</td>', re.S
+    r'Vecka\s*<span[^>]*>(\d{4})(?:&#x2011;|\u2011|-)(\d{1,2})</span></td>\s*<td[^>]*>(.*?)</td>', re.DOTALL
 )
 
 

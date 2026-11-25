@@ -24,6 +24,7 @@ ACTIVE_LEAD_MINUTES = 60
 DEBUG_DIR = "minridskola_debug"
 DEBUG_BUFFER_SIZE = 20
 
+SCHOOLS_BASE_URL = "https://www.minridskola.se"  # skolval ligger här, ww2 redirectar till Default.aspx
 PATH_SCHOOLS = "/Init_Ridskolor.aspx"
 PATH_LOGIN_PAGE = "/Default3.aspx"  # ?LicNr=<school id>
 PATH_LOGIN_POST = "/Init_LoggaIn.aspx"
