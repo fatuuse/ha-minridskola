@@ -1,0 +1,88 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ridskola",
+        "description": "Välj din ridskola.",
+        "data": {
+          "school_id": "Ridskola"
+        }
+      },
+      "school_manual": {
+        "title": "Ridskola",
+        "description": "Ridskolelistan kunde inte läsas. Ange ridskola manuellt.",
+        "data": {
+          "school_id": "Ridskole-id",
+          "school_name": "Ridskolans namn"
+        }
+      },
+      "credentials": {
+        "title": "Logga in",
+        "description": "Logga in hos {school}.\n\nAnge barnets personnummer (ÅÅMMDD-NNNN) eller det användarnamn som ridskolan har tilldelat.",
+        "data": {
+          "username": "Personnummer eller användarnamn",
+          "password": "Lösenord"
+        }
+      },
+      "child": {
+        "title": "Barn",
+        "description": "Välj vilket barn som ska följas.",
+        "data": {
+          "child_id": "Barn"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Fel användarnamn eller lösenord.",
+      "cannot_connect": "Kan inte ansluta till sidan.",
+      "parse_error": "Oväntat sidinnehåll. Aktivera debug och skapa en dump.",
+      "no_children": "Inga barn hittades för kontot."
+    },
+    "abort": {
+      "already_configured": "Barnet är redan tillagt."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Min Ridskola",
+        "menu_options": {
+          "settings": "Inställningar",
+          "debug_dump": "Skapa debug-dump"
+        }
+      },
+      "settings": {
+        "title": "Inställningar",
+        "data": {
+          "debug": "Spara svar för debug-dump"
+        }
+      }
+    },
+    "abort": {
+      "debug_written": "Debug-dump skriven till {path}. Maskad, men granska innan delning."
+    }
+  },
+  "entity": {
+    "calendar": {
+      "lessons": {
+        "name": "Lektioner"
+      }
+    },
+    "sensor": {
+      "next_lesson": {
+        "name": "Nästa lektion"
+      },
+      "upcoming_count": {
+        "name": "Kommande lektioner"
+      },
+      "last_horse": {
+        "name": "Senaste häst"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Uppdatera data"
+      }
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Riding school",
+        "description": "Choose your riding school.",
+        "data": {
+          "school_id": "Riding school"
+        }
+      },
+      "school_manual": {
+        "title": "Riding school",
+        "description": "The school list could not be read. Enter the school manually.",
+        "data": {
+          "school_id": "School id",
+          "school_name": "School name"
+        }
+      },
+      "credentials": {
+        "title": "Sign in",
+        "description": "Sign in to {school}.\n\nEnter the child's personal number (YYMMDD-NNNN) or the username assigned by the riding school.",
+        "data": {
+          "username": "Personal number or username",
+          "password": "Password"
+        }
+      },
+      "child": {
+        "title": "Child",
+        "description": "Choose which child to follow.",
+        "data": {
+          "child_id": "Child"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid username or password.",
+      "cannot_connect": "Cannot connect to the site.",
+      "parse_error": "Unexpected page content. Enable debug and create a dump.",
+      "no_children": "No children found for this account."
+    },
+    "abort": {
+      "already_configured": "This child is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Min Ridskola",
+        "menu_options": {
+          "settings": "Settings",
+          "debug_dump": "Create debug dump"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "data": {
+          "debug": "Capture responses for debug dump"
+        }
+      }
+    },
+    "abort": {
+      "debug_written": "Debug dump written to {path}. Redacted, but review before sharing."
+    }
+  },
+  "entity": {
+    "calendar": {
+      "lessons": {
+        "name": "Lessons"
+      }
+    },
+    "sensor": {
+      "next_lesson": {
+        "name": "Next lesson"
+      },
+      "upcoming_count": {
+        "name": "Upcoming lessons"
+      },
+      "last_horse": {
+        "name": "Last horse"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Refresh data"
+      }
+    }
+  }
+}
