@@ -1,0 +1,13 @@
+{
+  "domain": "minridskola",
+  "name": "Min Ridskola",
+  "codeowners": [
+    "@fatuuse"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/fatuuse/ha-minridskola",
+  "issue_tracker": "https://github.com/fatuuse/ha-minridskola/issues",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "0.1.0"
+}
