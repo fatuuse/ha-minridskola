@@ -4,29 +4,28 @@ from __future__ import annotations
 import hashlib
 import re
 import time
-from dataclasses import replace
-from urllib.parse import quote, urljoin
 from collections import deque
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from urllib.parse import quote, urljoin
 
 import aiohttp
 
 from .const import (
     BASE_URL,
-    SCHOOLS_BASE_URL,
     DEBUG_BUFFER_SIZE,
     LOGGER,
     LOGIN_FIELD_PASS,
+    LOGIN_FIELD_SUBMIT,
     LOGIN_FIELD_USER,
-    PATH_START,  # children list == start page (one account per child)
     PATH_HISTORY,
     PATH_LESSON_DETAIL,
     PATH_LESSONS,
-    PATH_LOGOUT,
-    LOGIN_FIELD_SUBMIT,
     PATH_LOGIN_PAGE,
     PATH_LOGIN_POST,
+    PATH_LOGOUT,
     PATH_SCHOOLS,
+    PATH_START,  # children list == start page (one account per child)
+    SCHOOLS_BASE_URL,
 )
 from .errors import AuthError, ConnectError, ParseError
 from .parsers import (
@@ -42,7 +41,8 @@ from .parsers import (
 from .summaries import Child, School, WeeklyLesson
 
 MAX_HOPS = 4
-TIMEOUT = aiohttp.ClientTimeout(total=30)
+TIMEOUT = aiohttp.ClientTimeout(total=45)
+DETAIL_TTL = 6 * 3600  # lesson detail (period, instructor message) changes rarely
 
 
 @dataclass
@@ -84,6 +84,8 @@ class MinRidskolaClient:
         self.debug = debug
         self.captures: deque[Capture] = deque(maxlen=DEBUG_BUFFER_SIZE)
         self._signed_in = False
+        self._detail_cache: dict[str, tuple[float, dict]] = {}
+        self._history_cache: tuple | None = None
         self._last_url = BASE_URL + "/"
         self._welcome_name: str | None = None
 
@@ -177,6 +179,7 @@ class MinRidskolaClient:
                 )
             raise AuthError("Sign-in rejected or unexpected page")
         self._welcome_name = parse_welcome_name(body)
+        self._history_cache = None
         self._signed_in = True
         LOGGER.debug("Signed in")
 
@@ -187,14 +190,13 @@ class MinRidskolaClient:
     async def async_get_children(self) -> list[Child]:
         """One account = one child (login uses the child's personal number)."""
         await self._ensure_login()
-        if not self._welcome_name:
-            self._welcome_name = parse_welcome_name(await self._request("GET", PATH_START))
         # Stable id without storing the personal number in unique ids.
         child_id = hashlib.sha256((self._username or "").encode()).hexdigest()[:12]
         return [Child(child_id, self._welcome_name)]
 
     async def async_logout(self) -> None:
         """Sign out (best effort, never raises) so no session lingers on the server."""
+        self._history_cache = None
         if not self._signed_in:
             return
         self._signed_in = False
@@ -222,9 +224,15 @@ class MinRidskolaClient:
             await self.async_login()
             body = await self._request("GET", PATH_LESSONS)
         weekly = parse_lessons(body)
-        # Enrich with period and instructor message from each lesson's detail page.
+        now = time.monotonic()
         enriched: list[WeeklyLesson] = []
+        history: tuple = self._history_cache or ()
+        history_fetched = self._history_cache is not None
         for w in weekly:
+            cached = self._detail_cache.get(w.key)
+            if cached and now - cached[0] < DETAIL_TTL:
+                enriched.append(replace(w, **cached[1]))
+                continue
             try:
                 detail = parse_lesson_detail(
                     await self._request("GET", f"{PATH_LESSON_DETAIL}?KNummerPlats={quote(w.key)}")
@@ -232,12 +240,25 @@ class MinRidskolaClient:
             except ParseError as err:
                 LOGGER.debug("Detail page not parsed for %s: %r", w.lesson_id, err)
                 enriched.append(w)
-            else:
-                # History page is session-bound to the lesson opened just above.
+                continue
+            self._detail_cache[w.key] = (now, detail)
+            # History is per child, not per lesson: fetch once per session.
+            if not history_fetched:
                 try:
                     history = tuple(parse_history(await self._request("GET", PATH_HISTORY)))
                 except ParseError as err:
-                    LOGGER.debug("History not parsed for %s: %r", w.lesson_id, err)
+                    LOGGER.debug("History not parsed: %r", err)
                     history = ()
-                enriched.append(replace(w, history=history, **detail))
-        return enriched
+                self._history_cache = history
+                history_fetched = True
+            enriched.append(replace(w, history=history, **detail))
+        # All details were cached (no detail request this cycle): still need history once.
+        if weekly and not history_fetched:
+            try:
+                history = tuple(parse_history(await self._request("GET", PATH_HISTORY)))
+            except ParseError as err:
+                LOGGER.debug("History not parsed: %r", err)
+                history = ()
+            self._history_cache = history
+        # Apply the (once-per-session) history to every lesson, including cached ones.
+        return [replace(w, history=history) for w in enriched]

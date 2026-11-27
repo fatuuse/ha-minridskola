@@ -4,7 +4,13 @@ from __future__ import annotations
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_CHILD_ID, CONF_CHILD_NAME, CONF_SCHOOL_ID, CONF_SCHOOL_NAME, DOMAIN
+from .const import (
+    CONF_CHILD_ID,
+    CONF_CHILD_NAME,
+    CONF_SCHOOL_ID,
+    CONF_SCHOOL_NAME,
+    DOMAIN,
+)
 from .coordinator import MinRidskolaCoordinator
 
 

@@ -7,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .api import MinRidskolaClient
 from .const import (
@@ -18,8 +19,6 @@ from .const import (
     LOGGER,
 )
 from .errors import AuthError, ConnectError, ParseError
-from homeassistant.util import dt as dt_util
-
 from .summaries import Lesson, expand_weekly, next_update_delay
 
 
