@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
@@ -217,8 +216,10 @@ class MinRidskolaOptionsFlow(OptionsFlow):
         for cap in client.captures:
             lines += [
                 "",
-                f"=== {cap.method} {cap.url} status={cap.status} {cap.elapsed_ms}ms "
-                f"redirects={cap.redirects}",
+                (
+                    f"=== {cap.method} {cap.url} status={cap.status} {cap.elapsed_ms}ms "
+                    f"redirects={cap.redirects}"
+                ),
                 redact(cap.body, secrets),
             ]
         out_dir = Path(self.hass.config.path(DEBUG_DIR))

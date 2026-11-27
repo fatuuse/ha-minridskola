@@ -7,10 +7,9 @@ from __future__ import annotations
 
 import html as htmllib
 import re
-
-from .errors import ParseError
 from datetime import date, time
 
+from .errors import ParseError
 from .summaries import HistoryEntry, School, WeeklyLesson
 
 
